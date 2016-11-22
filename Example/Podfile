@@ -1,0 +1,6 @@
+use_frameworks!
+target 'ShallowParsing_Tests' do
+  pod 'ShallowParsing', :path => '../'
+  
+  
+end
