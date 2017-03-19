@@ -1,4 +1,4 @@
-// XMLAnalyzer.swift
+// XMLToken.swift
 //
 // Copyright (c) 2016 Hèctor Marquès Ranea
 //
@@ -33,32 +33,21 @@ public enum XMLToken {
     case text(String, Range<String.Index>)
     case error(String, Range<String.Index>)
     
-    enum Prefix: String {
-        case Declaration            = "<!"
-        case XMLDeclaration         = "<?xml"
-        case ProcessingInstruction  = "<?"
-        case StartTag               = "<"
-        case EndTag                 = "</"
+    enum Prefix: String, PrefixProtocol {
+        case declaration            = "<!"
+        case xmlDeclaration         = "<?xml"
+        case processingInstruction  = "<?"
+        case endTag                 = "</"
         
-        static func firstCharacter() -> Character {
+        static var firstCharacter: Character {
             
-            return StartTag.rawValue.characters.first!
-        }
-        
-        func length() -> Int {
-            
-            return rawValue.characters.count
+            return "<"
         }
     }
     
-    enum Suffix: String {
-        case Tag           = ">"
-        case EmptyTag      = "/>"
-
-        func length() -> Int {
-            
-            return rawValue.characters.count
-        }
+    enum Suffix: String, SuffixProtocol {
+        case tag           = ">"
+        case emptyTag      = "/>"
     }
 }
 
@@ -67,18 +56,18 @@ extension XMLToken: Token {
     
     public init(match: Match) {
         let value = match.value
-        if match.value.characters.first == XMLToken.Prefix.firstCharacter() {
-            if value.contains(affix: .Declaration) {
+        if match.value.characters.first == XMLToken.Prefix.firstCharacter {
+            if value.contains(affix: Prefix.declaration) {
                 self = XMLToken.declaration(value, match.range)
-            } else if value.contains(affix: .XMLDeclaration) {
+            } else if value.contains(affix: Prefix.xmlDeclaration) {
                 self = XMLToken.xmlDeclaration(value, match.range)
-            } else if value.contains(affix: .ProcessingInstruction) {
+            } else if value.contains(affix: Prefix.processingInstruction) {
                 self = XMLToken.processingInstruction(value, match.range)
-            } else if value.contains(affix: .EndTag) {
+            } else if value.contains(affix: Prefix.endTag) {
                 self = XMLToken.endTag(value, match.range)
-            } else if value.contains(affix: .EmptyTag) {
+            } else if value.contains(affix: Suffix.emptyTag) {
                 self = XMLToken.emptyTag(value, match.range)
-            } else if value.contains(affix: .Tag) {
+            } else if value.contains(affix: Suffix.tag) {
                 self = XMLToken.startTag(value, match.range)
             } else {
                 self = XMLToken.error(value, match.range)
@@ -129,49 +118,5 @@ extension XMLToken: Token {
     public func range() -> Range<String.Index> {
         
         return associatedValues().range
-    }
-}
-
-// XMLToken additions to `String`.
-extension String {
-    
-    func index(of tagStart: XMLToken.Prefix) -> Index? {
-        if characters.count < tagStart.length() {
-            
-            return nil
-        }
-        let index =  characters.index(startIndex, offsetBy: tagStart.length())
-        
-        return index
-    }
-    
-    func index(of tagEnd: XMLToken.Suffix) -> Index? {
-        if characters.count < tagEnd.length() {
-            
-            return nil
-        }
-        let index = characters.index(endIndex, offsetBy: -tagEnd.length())
-        
-        return index
-    }
-    
-    func contains(affix tagStart: XMLToken.Prefix) -> Bool {
-        guard let to = index(of: tagStart) else {
-            
-            return false
-        }
-        let contains = (substring(to: to) == tagStart.rawValue)
-        
-        return contains
-    }
-    
-    func contains(affix tagEnd: XMLToken.Suffix) -> Bool {
-        guard let from = index(of: tagEnd) else {
-            
-            return false
-        }
-        let contains = (substring(from: from) == tagEnd.rawValue)
-        
-        return contains
     }
 }

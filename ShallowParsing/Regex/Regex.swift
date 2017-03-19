@@ -22,25 +22,6 @@
 
 import Foundation
 
-/// Representation of a regular expression match.
-public struct Match {
-    
-    public let range: Range<String.Index>
-    public let value: String
-    
-    init(range: Range<String.Index>, in string: String) {
-        self.range = range
-        self.value = string.substring(with: range)
-    }
-}
-
-// `Match` *is equal* operator.
-extension Match: Equatable { }
-public func ==(lhs: Match, rhs: Match) -> Bool {
-    
-    return (lhs.range == rhs.range && lhs.value == rhs.value)
-}
-
 /// Wrapper for `NSRegularExpressionOptions`.
 /// Derived from: <http://nshipster.com/swift-literal-convertible/>.
 public struct Regex {
@@ -98,32 +79,4 @@ public struct Regex {
         
         return matches
     }
-}
-
-// TODO: decide what to do with this...
-#if false
-// Sort of `Regex` literals.
-extension Regex: ExpressibleByStringLiteral {
-    
-    public typealias UnicodeScalarLiteralType = String
-    public init(unicodeScalarLiteral value: UnicodeScalarLiteralType) {
-        try! self.init(pattern: "\(value)")
-    }
-    
-    public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
-    public init(extendedGraphemeClusterLiteral value: ExtendedGraphemeClusterLiteralType) {
-        try! self.init(pattern: value)
-    }
-    
-    public init(stringLiteral value: StringLiteralType) {
-        try! self.init(pattern: value)
-    }
-}
-#endif
-
-// `Regex` *Equal* operator.
-extension Regex: Equatable { }
-public func ==(lhs: Regex, rhs: Regex) -> Bool {
-    
-    return (lhs.options == rhs.options && lhs.pattern == rhs.pattern && lhs.matchingOptions == rhs.matchingOptions)
 }
